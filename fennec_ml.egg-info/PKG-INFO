@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: fennec-ml
+Version: 0.3.4
+Summary: Machine Learning tools for LETU FENNEC senior design team
+Author-email: nontopus <micahb.yarbrough@gmail.com>
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: openpyxl
+Requires-Dist: scikit-learn

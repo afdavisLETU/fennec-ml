@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fennec-ml"
+version = "0.3.4"
+description = "Machine Learning tools for LETU FENNEC senior design team"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name="nontopus", email="micahb.yarbrough@gmail.com" }
+]
+dependencies = [
+    "numpy",
+    "pandas",
+    "openpyxl",
+    "scikit-learn"
+]
+requires-python = ">=3.8"
+

@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+setup.cfg
+fennec_ml/__init__.py
+fennec_ml/data_utils.py
+fennec_ml.egg-info/PKG-INFO
+fennec_ml.egg-info/SOURCES.txt
+fennec_ml.egg-info/dependency_links.txt
+fennec_ml.egg-info/requires.txt
+fennec_ml.egg-info/top_level.txt
+tests/test_data_utils.py
