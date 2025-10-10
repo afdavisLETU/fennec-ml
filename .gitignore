@@ -1,2 +1,2 @@
 # ignore any .DS_Store
-*.DS_Store
+.DS_Store
