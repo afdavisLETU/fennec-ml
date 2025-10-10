@@ -2,12 +2,17 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["fennec_ml"]
+include-package-data = false
+
 [project]
 name = "fennec-ml"
-version = "0.3.4"
+version = "0.3.5"
 description = "Machine Learning tools for LETU FENNEC senior design team"
-readme = "README.md"
-license = { file = "LICENSE" }
+readme = { file = "README.md", content-type = "text/markdown" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     { name="nontopus", email="micahb.yarbrough@gmail.com" }
 ]
@@ -18,4 +23,7 @@ dependencies = [
     "scikit-learn"
 ]
 requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "https://github.com/afdavisLETU/fennec-ml"
 
