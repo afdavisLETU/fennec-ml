@@ -159,7 +159,8 @@ def folder_cleaner(excel_dir, savepath, overwrite = False, skip = False, varspat
     # for each file in the folder, run data_cleaner
     for file in os.listdir(excel_dir):
         filepath = os.path.join(excel_dir, file)
-        data_cleaner(filepath, savepath, overwrite, skip, varspath)
+        if filepath.lower().endswith(".xlsx"):
+            data_cleaner(filepath, savepath, overwrite, skip, varspath)
 
 
 
