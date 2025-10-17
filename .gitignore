@@ -1,2 +1,5 @@
 # ignore any .DS_Store
-.DS_Store
+.DS_Store 
+
+# ignore any .code-workspace
+*.code-workspace
