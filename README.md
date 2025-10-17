@@ -142,9 +142,9 @@ scaled_data = fn.standardize(csv_dir)
 
 ---
 
-### get_CG_labels()
+### get_2D_CG_labels()
 
-Reads all filenames in a folder and returns characterization labels
+Reads all filenames in a folder and returns 2d CG characterization labels
 
 **Args:**
 
@@ -157,6 +157,25 @@ Reads all filenames in a folder and returns characterization labels
 ```python
 cg_labels = fn.get_CG_labels(csv_dir)
 ```
+
+---
+
+### get_1D_CG_labels()
+
+Reads all filenames in a folder and returns 1d CG characterization labels
+
+**Args:**
+
+- csv_dir (string): Directory of .csv files from which to get labels
+
+**Returns:**
+
+- labels (list): A list of all the characterization labels
+
+```python
+cg_labels = fn.get_CG_labels(csv_dir)
+```
+
 ---
 
 ### segment_and_split()
