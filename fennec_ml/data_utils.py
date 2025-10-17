@@ -280,10 +280,10 @@ def standardize(csv_dir, weights = [None], offsets = [None], scaler= StandardSca
 
 # Micah Yarbrough 
 # 10/9/25
-# Segments, labels, and sorts data into dataset dictionary
-def get_CG_labels(csv_dir):
+# Reads all filenames in a folder and returns 1D CG characterization labels
+def get_1D_CG_labels(csv_dir):
     """
-    Reads all filenames in a folder and returns characterization labels
+    Reads all filenames in a folder and returns 1D CG characterization labels
 
     Args:
         csv_dir (string): Directory of .csv files from which to get labels
@@ -326,6 +326,74 @@ def get_CG_labels(csv_dir):
             labels.append("DD")
         if re.search(patternEE, filename):
             labels.append("EE")
+    
+    return labels
+
+
+# Micah Yarbrough 
+# 10/17/25
+# Reads all filenames in a folder and returns 2D CG characterization labels
+def get_2D_CG_labels(csv_dir):
+    """
+    Reads all filenames in a folder and returns 2D CG characterization labels
+
+    Args:
+        csv_dir (string): Directory of .csv files from which to get labels
+    
+    Returns:
+        labels (list): A list of all the characterization labels
+
+    """
+    # the output labels list
+    labels = []
+
+    # Regex patterns for reading 2024-2025 1D and 2D CG flight data files
+    patternAAP = r'^\d+G_(AAP)_(L|H|S)_\d+\.csv$'
+    patternAAC = r'^\d+G_(AAC)_(L|H|S)_\d+\.csv$'
+    patternAAS = r'^\d+G_(AAS)_(L|H|S)_\d+\.csv$'
+
+    patternBBP = r'^\d+G_(BBP)_(L|H|S)_\d+\.csv$'
+    patternBBC = r'^\d+G_(BBC)_(L|H|S)_\d+\.csv$'
+    patternBBS = r'^\d+G_(BBS)_(L|H|S)_\d+\.csv$'
+
+    patternCCP = r'^\d+G_(CCP)_(L|H|S)_\d+\.csv$'
+    patternCCC = r'^\d+G_(CCC)_(L|H|S)_\d+\.csv$'
+    patternCCS = r'^\d+G_(CCS)_(L|H|S)_\d+\.csv$'
+
+    # --- CHECK FILEPATH ---
+    if not os.path.isdir(csv_dir): # does savepath exist?
+        raise FileNotFoundError(
+            f"Error: Save path '{csv_dir}' not found. "
+            f"Please create the directory before running the function."
+        )
+
+    # --- GET FILEPATHS ---
+    csv_files = sorted(glob.glob(os.path.join(csv_dir, "*.csv")))
+    # SORTED() IS ESSENTIAL TO ENSURE FILES MATCH normalize() data
+
+    # append label of each file to labels list
+    for file in csv_files:
+        filename = os.path.basename(file)
+        if re.search(patternAAP, filename):
+            labels.append("AAP")
+        if re.search(patternAAC, filename):
+            labels.append("AAC")
+        if re.search(patternAAS, filename):
+            labels.append("AAS")
+
+        if re.search(patternBBP, filename):
+            labels.append("BBP")
+        if re.search(patternBBC, filename):
+            labels.append("BBC")
+        if re.search(patternBBS, filename):
+            labels.append("BBS")
+
+        if re.search(patternCCP, filename):
+            labels.append("CCP")
+        if re.search(patternCCC, filename):
+            labels.append("CCC")
+        if re.search(patternCCS, filename):
+            labels.append("CCS")
     
     return labels
 
