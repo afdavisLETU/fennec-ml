@@ -133,7 +133,9 @@ def data_cleaner(filepath, savepath, overwrite = False, skip = False, varspath =
     print(f"{inputfile} processed and saved to {savepath} as {filename}.csv")
     return True
 
-
+# Micah Yarbrough and Wills Kookogey
+# 10/21/25
+# This function will calls the data cleaner for every .xlsx file in a given directory
 def folder_cleaner(excel_dir, savepath, overwrite = False, skip = False, varspath = "vars_of_interest.json"):
     """
     Preprocesses a folder of .xlsx files into fennec question-usefull .csv files.
