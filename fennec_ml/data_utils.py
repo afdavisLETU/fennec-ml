@@ -408,6 +408,7 @@ def get_2D_CG_labels(csv_dir):
 def segment_and_split(input_data, input_labels, timesteps, train_split=0.7, validate_split=0.15):
     """
     Segments, labels, and sorts data into dataset dictionary
+    output shape is (batch, sequence, feature)
 
     Args:
         input_data (list): List of numpy arrays, 1 per file
@@ -421,7 +422,7 @@ def segment_and_split(input_data, input_labels, timesteps, train_split=0.7, vali
             each set has the follwing labels: "sets" and "labels" 
                 - "sets" : list of sets, corresponds to "labels"
                 - "labels" : list of labels, corresponds to "sets"
-            ex: output["Training_Set"]["sets"]
+            ex: output["Training_Set"]["sets"] 
 
     """
     # --- ERROR CHECKS ---
