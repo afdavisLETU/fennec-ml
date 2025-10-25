@@ -91,6 +91,8 @@ def data_cleaner(filepath, savepath, overwrite = False, skip = False, varspath =
 
     extracted_data = {key: None for key in vars_of_interest} #stores only the designated data from each xl sheet
 
+    sheets = vars_of_interest.keys()
+
     #get the correct data from each sheet in the pandas array
     for sheet, variables in vars_of_interest.items():
         #make sure sheet exist in .xlsx
@@ -113,7 +115,8 @@ def data_cleaner(filepath, savepath, overwrite = False, skip = False, varspath =
         extracted_data[sheet] = df[variables].to_numpy(dtype=float) #save the designated data to extracted_data as a numpy array
         
         #FREQUENCY CORRECTION
-        if(sheet == "RCOU" or sheet == "RCIN"):
+        # note: will be skipped if there are no other sheets besides RCOU and RCIN in vars_of_interest
+        if sheet in {"RCOU", "RCIN"} and not set(sheets).issubset({"RCIN", "RCOU"}):
             extracted_data[sheet] = np.repeat(extracted_data[sheet], 40, axis=0).astype(float) #IMU freq. / RCOU/IN freq. = 400Hz / 10Hz = 40
 
     # --- LENGTH CORRECTION ---
