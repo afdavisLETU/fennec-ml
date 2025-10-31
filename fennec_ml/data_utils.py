@@ -134,6 +134,7 @@ def data_cleaner(filepath, savepath, overwrite = False, skip = False, varspath =
     df.to_csv(new_path, index=False, encoding='utf_8') # Save to new path
 
     print(f"{inputfile} processed and saved to {savepath} as {filename}.csv")
+    xl.close()
     return True
 
 # Micah Yarbrough and Wills Kookogey
