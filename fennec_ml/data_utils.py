@@ -10,9 +10,9 @@ import glob
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 # Micah Yarbrough
-# 10/4/25
+# 11/7/25
 # This function will extract and clean up data from .xlsx files, saving them as .csv's
-def data_cleaner(filepath, savepath, overwrite = False, skip = False, varspath = "vars_of_interest.json"):
+def data_cleaner(filepath, savepath, overwrite= False, skip= False, varspath= "vars_of_interest.json", downsample= True):
     """
     Preprocesses .xlsx files into fennec question-usefull .csv files.
 
@@ -22,6 +22,7 @@ def data_cleaner(filepath, savepath, overwrite = False, skip = False, varspath =
         overwrite (bool): Skips the overwrite checker if true.
         skip (bool): Skips duplicate files instead of checking or overwriting if true.
         varspath (string): The vars-of-interest.json path. Defaults to same folder as THIS script.
+        downsample (bool): If true, it will downsample to the lowest sample rate, if false it will upsample to the highest
 
     Relies on the vars_of_interest.json file to determine what data is wanted
     """
@@ -114,16 +115,35 @@ def data_cleaner(filepath, savepath, overwrite = False, skip = False, varspath =
 
         extracted_data[sheet] = df[variables].to_numpy(dtype=float) #save the designated data to extracted_data as a numpy array
         
-        #FREQUENCY CORRECTION
-        # note: will be skipped if there are no other sheets besides RCOU and RCIN in vars_of_interest
-        if sheet in {"RCOU", "RCIN"} and not set(sheets).issubset({"RCIN", "RCOU"}):
-            extracted_data[sheet] = np.repeat(extracted_data[sheet], 40, axis=0).astype(float) #IMU freq. / RCOU/IN freq. = 400Hz / 10Hz = 40
+    #FREQUENCY CORRECTION    
+    lengths = [len(arr) for arr in extracted_data.values()] # get total timesteps for each sheet
+    min_len = min(lengths) # find shortest sheet
+    ratios = [round(l / min_len) for l in lengths]
 
+    # Scale each sheet according to its scaling ratio
+    for i, (sheet_name, sheet) in enumerate(extracted_data.items()):
+        ratio = ratios[i]
+        sheet = sheet[::ratio]
+        # Downsample
+        if downsample == True and ratio != 1:
+            extracted_data[sheet_name] = sheet  # reassign if you want to keep the change
+            print(f"Sheet {sheet_name}, downsampled by {ratio}")
+        # Upsample
+        elif downsample == False:
+            ratio = max(ratios)/ratio
+            if ratio != 1:
+                extracted_data[sheet_name] = np.repeat(extracted_data[sheet_name], max(ratios)/ratio, axis=0).astype(float)
+                print(f"Sheet {sheet_name}, upsampled by {ratio}")
+
+    # Recalculate the lengths
+    lengths = [len(arr) for arr in extracted_data.values()]
+    min_len = min(lengths)
+ 
     # --- LENGTH CORRECTION ---
-    min_len = min(len(arr) for arr in extracted_data.values()) # Find the minimum length among all the np arrays
     #Truncate all arrays to the minimum length
     for sheet in extracted_data: 
         extracted_data[sheet] = extracted_data[sheet][:min_len] 
+    lengths = [len(arr) for arr in extracted_data.values()]
 
     #stack all the data from each sheet into one single 2D array
     csv_data = np.hstack(list(extracted_data.values()))
@@ -140,7 +160,7 @@ def data_cleaner(filepath, savepath, overwrite = False, skip = False, varspath =
 # Micah Yarbrough and Wills Kookogey
 # 10/21/25
 # This function will calls the data cleaner for every .xlsx file in a given directory
-def folder_cleaner(excel_dir, savepath, overwrite = False, skip = False, varspath = "vars_of_interest.json"):
+def folder_cleaner(excel_dir, savepath, overwrite = False, skip = False, varspath = "vars_of_interest.json", downsample= True):
     """
     Preprocesses a folder of .xlsx files into fennec question-usefull .csv files.
 
@@ -166,7 +186,7 @@ def folder_cleaner(excel_dir, savepath, overwrite = False, skip = False, varspat
     for file in os.listdir(excel_dir):
         filepath = os.path.join(excel_dir, file)
         if filepath.lower().endswith(".xlsx"):
-            data_cleaner(filepath, savepath, overwrite, skip, varspath)
+            data_cleaner(filepath, savepath, overwrite, skip, varspath, downsample)
 
 
 
