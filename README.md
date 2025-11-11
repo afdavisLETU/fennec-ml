@@ -191,7 +191,7 @@ Reads all filenames in a folder and returns FID characterization labels
 - labels (list): A list of all the characterization labels
 
 ```python
-FID_labels = fn.get_FID_labels(csv_dir)
+fid_labels = fn.get_FID_labels(csv_dir)
 ```
 
 ---
