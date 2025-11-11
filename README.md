@@ -155,7 +155,7 @@ Reads all filenames in a folder and returns 2d CG characterization labels
 - labels (list): A list of all the characterization labels
 
 ```python
-cg_labels = fn.get_CG_labels(csv_dir)
+cg_labels = fn.get_2D_CG_labels(csv_dir)
 ```
 
 ---
@@ -173,7 +173,25 @@ Reads all filenames in a folder and returns 1d CG characterization labels
 - labels (list): A list of all the characterization labels
 
 ```python
-cg_labels = fn.get_CG_labels(csv_dir)
+cg_labels = fn.get_1D_CG_labels(csv_dir)
+```
+
+---
+
+### get_FID_labels()
+
+Reads all filenames in a folder and returns FID characterization labels
+
+**Args:**
+
+- csv_dir (string): Directory of .csv files from which to get labels
+
+**Returns:**
+
+- labels (list): A list of all the characterization labels
+
+```python
+FID_labels = fn.get_FID_labels(csv_dir)
 ```
 
 ---
