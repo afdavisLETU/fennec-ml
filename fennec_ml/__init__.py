@@ -5,6 +5,8 @@ __all__ = [
     "folder_cleaner",
     "normalize", 
     "standardize", 
-    "get_CG_labels",
+    "get_2D_CG_labels",
+    "get_1D_CG_labels",
+    "get_FID_labels",
     "segment_and_split"
     ]
