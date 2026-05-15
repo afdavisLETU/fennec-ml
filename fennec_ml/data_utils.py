@@ -191,118 +191,108 @@ def folder_cleaner(excel_dir, savepath, overwrite = False, skip = False, varspat
 
 
 
-# Luke Fagg & Micah Yarbrough
-# 10/9/25
-# This function will normalize and add weights to cleaned data before it goes into the dataset class
-# NORMALIZING means scaling the data between the min and max values
-def normalize(csv_dir, weights = [None], offsets = [None], scaler= MinMaxScaler(feature_range=(-1,1))):
+# Wills Kookogey, Micah Yarbrough & Luke Fagg
+# 10/09/25
+# This function segments the data and splits it into train/validate/test.
+def csv_to_numpy(csv_dir, start_index=0, end_index=None):
     """
-    Return a 3D array of NORMALIZED data from cleaned csv's
-    NORMALIZING means scaling the data between the min and max values
+    Convert csv's into list of numpy arrays, 1 per flight
     
     Args:
         csv_dir: The path (including the folder name) of cleaned data
-        weights: An optional array of weights corresponding to each column
-        offsets: An optional array of offsets corresponding to column
     
     Returns:
-        norm_data: A list of numpy arrays holding NORMALIZED data
+        data: A list of numpy arrays holding data for each flight
 
     """
+    
+    output_data = []
     
     if not os.path.isdir(csv_dir): # does savepath exist?
         raise FileNotFoundError(
             f"Error: Save path '{csv_dir}' not found. "
             f"Please create the directory before running the function."
         )
+        
+    if end_index is not None and end_index < start_index:
+        raise ValueError(
+            f"Error: end_index ({end_index}) must be greater than or equal to start_index ({start_index})."
+        )
+    
     # Paths
     clean_files = sorted(glob.glob(os.path.join(csv_dir, "*.csv")))
     # SORTED() IS ESSENTIAL TO ENSURE FILES MATCH get_labels() LABELS
-    all_data = []
-    norm_data = []
 
-    #load all data so the scaler fits to the WHOLE data range
+    # Import and convert data to list of numpy arrays
     for file in clean_files:
-        df = pd.read_csv(file) #get csv data to PANDAS
-        arr = df.to_numpy() #make pandas data numpy
-        if offsets[0] == None:
-            offsets = [0] * df.shape[1]
-        df = df - offsets
-        all_data.append(arr)
-
-    all_data = np.vstack(all_data)
-
-    scaler.fit(all_data)
-
-    #Import and scale the data
-    for file in clean_files:
-        df = pd.read_csv(file)
-        if offsets[0] == None:
-            offsets = [0] * df.shape[1]
-        scaled_data = scaler.transform(df.to_numpy())
-        if weights[0] == None:
-            weights = [1] * df.shape[1]
-        scaled_data = scaled_data * weights
-        norm_data.append(scaled_data)
+        data = pd.read_csv(file).to_numpy()
+        
+        # print file name
+        print(f"Importing {os.path.basename(file)} with shape {data.shape}...")
+        
+        # add deltas to data (so each timestep has the change in value from the previous timestep for each feature)
+        # deltas = np.diff(data, axis=0, prepend=data[[0]])  # prepend first row so shape stays the same
+        # data = np.concatenate([data, deltas], axis=1)      # [timesteps, features*2]
+        
+        # cut data to desired range if start/end index is specified
+        if start_index > 0:
+            data = data[start_index:]
+        if end_index is not None:
+            data = data[:end_index]
+        
+        output_data.append(data)
     
-    return norm_data
+    return output_data
 
 
-# Luke Fagg & Micah Yarbrough
-# 10/9/25
-# This function will standardize and add weights to cleaned data before it goes into the dataset class
-# STANDARDIZING means scaling the data so the mean = 0 and the std deviation = 1
-def standardize(csv_dir, weights = [None], offsets = [None], scaler= StandardScaler()):
+
+
+# Wills Kookogey, Luke Fagg & Micah Yarbrough
+# 02/17/26
+# This function will normalize cleaned data before it goes into the dataset dictionary
+# NORMALIZING means scaling the data between 
+def scale(train_val_data_input, test_data_input, scaler="standard"):
     """
-    Return a 3D array of STANDARDIZED data from cleaned csv's
-    STANDARDIZING means scaling the data so the mean = 0 and the std deviation = 1
+    Return 3 2D arrays of `SCALED` data from split data
+    Normalizes train, validate, and test data according to train data to avoid data leakage
     
     Args:
-        csv_dir: The path (including the folder name) of cleaned data
-        weights: An optional array of weights corresponding to each column
-        offsets: An optional array of offsets corresponding to column
+        train_val_data_input: A list of numpy arrays, 1 per file, all for training
+        test_data_input: A list of numpy arrays, 1 per file, all for testing
     
     Returns:
-        stand_data: A list of numpy arrays holding STANDARDIZED data
+        train_val_data_norm: A list of numpy arrays holding scaled train data
+        test_data_norm: A list of numpy arrays holding scaled test data
 
     """
     
-    if not os.path.isdir(csv_dir): # does savepath exist?
-        raise FileNotFoundError(
-            f"Error: Save path '{csv_dir}' not found. "
-            f"Please create the directory before running the function."
-        )
-    # Paths
-    clean_files = sorted(glob.glob(os.path.join(csv_dir, "*.csv")))
-    # SORTED() IS ESSENTIAL TO ENSURE FILES MATCH get_labels() LABELS
-    all_data = []
-    stand_data = []
-
-    #load all data so the scaler fits to the WHOLE data range
-    for file in clean_files:
-        df = pd.read_csv(file) #get csv data to PANDAS
-        arr = df.to_numpy() #make pandas data numpy
-        if offsets[0] == None:
-            offsets = [0] * df.shape[1]
-        df = df - offsets
-        all_data.append(arr)
-
-    all_data = np.vstack(all_data)
-
-    scaler.fit(all_data)
-
-    #Import and scale the data
-    for file in clean_files:
-        df = pd.read_csv(file)
-        if offsets[0] == None:
-            offsets = [0] * df.shape[1]
-        scaled_data = scaler.transform(df.to_numpy())
-        if weights[0] == None:
-            weights = [1] * df.shape[1]
-        scaled_data = scaled_data * weights
-        stand_data.append(scaled_data)
+    if scaler == "minmax":
+        scaler = MinMaxScaler(feature_range=(-1, 1))
+    elif scaler == "standard":
+        scaler = StandardScaler()
     
-    return stand_data
+    
+    train_data = []
+    train_data_norm = []
+    test_data_norm = []
+
+    # load train data so the scaler fits to the train data without being affected by
+    # unseen validation and test data (to avoid data leakage)
+    train_val_data = np.vstack(train_val_data_input)
+
+    # fit scaler to train data
+    scaler.fit(train_val_data)
+
+    # Scale all the data
+    for arr in train_val_data_input:
+        train_data_norm.append(scaler.transform(arr))
+    
+    for arr in test_data_input:
+        test_data_norm.append(scaler.transform(arr))
+    
+    return train_data_norm, test_data_norm
+
+
 
 
 # Micah Yarbrough 
@@ -424,135 +414,6 @@ def get_2D_CG_labels(csv_dir):
     
     return labels
 
-
-# Wills Kookogey
-# 11/4/25
-# Reads all filenames in a folder and returns FID characterization labels
-def get_FID_labels(csv_dir):
-    """
-    Reads all filenames in a folder and returns FID characterization labels
-
-    Args:
-        csv_dir (string): Directory of .csv files from which to get labels
-    
-    Returns:
-        labels (list): A list of all the characterization labels
-
-    """
-    # the output labels list
-    labels = []
-
-    # Regex patterns for reading 2024-2025 1D and 2D CG flight data files
-    patternL = r'^\d+[A-Za-z]_(L)\.csv$'
-    patternR = r'^\d+[A-Za-z]_(R)\.csv$'
-    patternLR = r'^\d+[A-Za-z]_(LR)\.csv$'
-    patternNONE = r'^\d+[A-Za-z]_(NONE)\.csv$'
-
-    # --- CHECK FILEPATH ---
-    if not os.path.isdir(csv_dir): # does savepath exist?
-        raise FileNotFoundError(
-            f"Error: Save path '{csv_dir}' not found. "
-            f"Please create the directory before running the function."
-        )
-
-    # --- GET FILEPATHS ---
-    csv_files = sorted(glob.glob(os.path.join(csv_dir, "*.csv")))
-    # SORTED() IS ESSENTIAL TO ENSURE FILES MATCH normalize() data
-
-    # append label of each file to labels list
-    for file in csv_files:
-        filename = os.path.basename(file)
-        if re.search(patternL, filename):
-            labels.append("L")
-        if re.search(patternR, filename):
-            labels.append("R")
-        if re.search(patternLR, filename):
-            labels.append("LR")
-        if re.search(patternNONE, filename):
-            labels.append("NONE")
-    
-    return labels
-
-
-# Wills Kookogey & Micah Yarbrough
-# 10-09-25
-# This function segments the data and splits it into train/validate/test.
-# It returns a dictionary
-def segment_and_split(input_data, input_labels, timesteps, train_split=0.7, validate_split=0.15):
-    """
-    Segments, labels, and sorts data into dataset dictionary
-    output shape is (batch, sequence, feature)
-
-    Args:
-        input_data (list): List of numpy arrays, 1 per file
-        input_labels (list): List of characterization lables, 1 per file (should correspond to input_data)
-        timesteps (int): length of desired segments
-        train_split (float): Percentage of segments to save as training segments
-        validate_split (float): Percentage of segments to save as validation segments
-    
-    Returns:
-        output (dict): 3 labels: "Training_Set", "Validation_Set", and "Testing_Set"
-            each set has the follwing labels: "sets" and "labels" 
-                - "sets" : list of sets, corresponds to "labels"
-                - "labels" : list of labels, corresponds to "sets"
-            ex: output["Training_Set"]["sets"] 
-
-    """
-    # --- ERROR CHECKS ---
-    if len(input_data) != len(input_labels):
-        raise ValueError(
-            f"Length mismatch: got {len(input_data)} arrays but {len(input_labels)} labels. "
-            "They must be the same length."
-        )
-
-    # temp arrays
-    all_segments = []
-    all_labels = []
-
-    # --- SPLIT ARRAYS ---
-    # for each element in data array, split it into segments of length = timestamps
-    # add a corresponding label to each respective index in the label list
-    for index, array in enumerate(input_data):
-        # find the maximum number of timesteps that can be cut
-        cutoff = (len(array) // timesteps) * timesteps
-        array = array[:cutoff] # trim array to have no leftover after cutting
-
-        #split the array up into segments
-        segmented_arrays = np.split(array, len(array) // timesteps)
-        all_segments.extend(segmented_arrays) # add the array segments to all_segments
-        all_labels.extend([input_labels[index]]*len(segmented_arrays)) # add the correct number of labels to all_labels
-
-    # convert lists to numpy arrays
-    all_segments = np.stack(all_segments)
-    all_labels = np.array(all_labels)
-
-    num_of_segments = len(all_labels)
-
-    # --- SHUFFLE SEGMENTS ---
-    # shuffle the arrays, keeping the segments and labels together
-    rand_indices = np.random.permutation(num_of_segments)
-    all_segments, all_labels = all_segments[rand_indices], all_labels[rand_indices]
-
-    # --- SORT SEGMENTS ---
-    # set indices to split time series data at
-    train_end = int(num_of_segments*train_split)
-    val_end = int(num_of_segments*(train_split+validate_split))
-
-    # define output dict
-    output = {
-        "Training_Set": {"sets": all_segments[:train_end], "labels": all_labels[:train_end]},
-        "Validation_Set": {"sets": all_segments[train_end:val_end], "labels": all_labels[train_end:val_end]},
-        "Testing_Set": {"sets": all_segments[val_end:], "labels": all_labels[val_end:]}
-    }
-
-    # Print out completion message and the number of sets in each category
-    print("All data segmented and sorted!")
-    print(f"Training_Sets: {len(output['Training_Set']['labels'])}")
-    print(f"Validation_Sets: {len(output['Validation_Set']['labels'])}")
-    print(f"Testing_Sets: {len(output['Testing_Set']['labels'])}")
-
-    #return split data
-    return output
 
 # Glory to the Father, and to the Son, and to the Holy Spirit: as
 # it was in the beginning, is now, and will be for ever. Amen. 
