@@ -40,22 +40,25 @@ training_sets = dataset_dict['Training_Set']['sets']
 training_labels = dataset_dict['Training_Set']['labels']
 ```
 
-## Project Structure
+## Example Project Structure
 
 ```txt
 myproject/
 ├── data/
 │   ├── raw_data/
-│   │   ├── flight123_AA_L.xlxs
-│   │   └── ...
-│   └── proccessed_data/
-│       ├── flight123_AA_L.csv
-│       └── ...
+│   │   ├── train_val/
+│   │   │   └── flight123_AA_L.csv
+│   │   └── test/
+│   │       └── flight456_BB_R.csv
+│   └── processed_data/
+│   │   ├── train_val/
+│   │   │   └── flight123_AA_L.csv
+│   │   └── test/
+│   │       └── flight456_BB_R.csv
 ├── saved_models/
 │   └── ...
 ├── vars_of_interest.json
-├── project_dev.ipynb
-└── project_training.py
+└── project_dev.ipynb
 ```
 
 ## Features
@@ -70,7 +73,8 @@ Preprocesses .xlsx files into fennec question-usefull .csv files.
 - savepath (string): The folder to save the .csv file.
 - overwrite (bool): Skips the overwrite checker if true.
 - skip (bool): Skips duplicate files instead of checking or overwriting if true.
-- varspath (string): The vars-of-interest.json path. Defaults to same folder as THIS script.  
+- varspath (string): The vars-of-interest.json path. Defaults to same folder as THIS script.
+- downsample (bool): If true, it will downsample to the lowest sample rate, if false it will upsample to the highest
 
 Relies on the vars_of_interest.json file to determine what data is wanted
 
@@ -100,62 +104,39 @@ fn.folder_cleaner(excel_dir, skip= True)
 
 ---
 
-### normalize()
+### csv_to_numpy()
 
-Return a 3D array of normalized data from cleaned csv's  
-**Note:** *Normalizing* means scaling the data between the min and max values
+Converts csv's into list of numpy arrays, 1 per flight
 
 **Args:**
 
 - csv_dir (string): The path (including the folder name) of cleaned data
-- weights (list): An optional list of weights corresponding to each column
-- offsets (list): An optional list of offsets corresponding to column
+
+**Returns:**
+
+- data (list): A list of numpy arrays holding data for each flight
+
+```python
+data = fn.csv_to_numpy(csv_dir)
+```
+
+---
+
+### scale()
+
+Return 3 2D arrays of `SCALED` data from split data. Normalizes train, validate, and test data according to train data to avoid data leakage
+
+**Args:**
+
+- train_val_data_input (list): A list of numpy arrays, 1 per file, all for training
+- test_data_input (list): A list of numpy arrays, 1 per file, all for testing
 
 **Returns:**
 
 - norm_data (list): A list of numpy arrays holding normalized data
 
 ```python
-scaled_data = fn.normalize(csv_dir)
-```
-
----
-
-### standardize()
-
-Return a 3D array of standardized data from cleaned csv's  
-**Note:** *Standarizing* means scaling the data so the mean = 0 and the std deviation = 1
-
-**Args:**
-
-- csv_dir (string): The path (including the folder name) of cleaned data
-- weights (list): An optional list of weights corresponding to each column
-- offsets (list): An optional list of offsets corresponding to column
-
-**Returns:**
-
-- stand_data (list): A list of numpy arrays holding STANDARDIZED data
-
-```python
-scaled_data = fn.standardize(csv_dir)
-```
-
----
-
-### get_2D_CG_labels()
-
-Reads all filenames in a folder and returns 2d CG characterization labels
-
-**Args:**
-
-- csv_dir (string): Directory of .csv files from which to get labels
-
-**Returns:**
-
-- labels (list): A list of all the characterization labels
-
-```python
-cg_labels = fn.get_2D_CG_labels(csv_dir)
+scaled_data = fn.scale(train_val_data, test_data, scaler= "standard")
 ```
 
 ---
@@ -178,9 +159,9 @@ cg_labels = fn.get_1D_CG_labels(csv_dir)
 
 ---
 
-### get_FID_labels()
+### get_2D_CG_labels()
 
-Reads all filenames in a folder and returns FID characterization labels
+Reads all filenames in a folder and returns 2d CG characterization labels
 
 **Args:**
 
@@ -191,35 +172,7 @@ Reads all filenames in a folder and returns FID characterization labels
 - labels (list): A list of all the characterization labels
 
 ```python
-fid_labels = fn.get_FID_labels(csv_dir)
-```
-
----
-
-### segment_and_split()
-
-Segments, labels, and sorts data into dataset dictionary
-
-**Args:**
-
-- input_data (list): List of numpy arrays, 1 per proccessed and scaled files
-- input_labels (list): List of characterization lables, 1 per file (should correspond to input_data)
-- timesteps (int): length of desired segments
-- train_split (float): Percentage of segments to save as training segments
-- validate_split (float): Percentage of segments to save as validation segments
-
-**Returns:**
-
-- output (dict): 3 labels: "Training_Set", "Validation_Set", and "Testing_Set"  
-Each set has the follwing labels: "sets" and "labels"
-  - "sets" : list of sets, corresponds to "labels"
-  - "labels" : list of labels, corresponds to "sets"  
-
-```python
-data_dict = fn.segment_and_split(all_data, all_labels, 60)
-
-train_set = data_dict['Training_Set']['sets']
-train_labels = data_dict['Training_Set']['labels']
+cg_labels = fn.get_2D_CG_labels(csv_dir)
 ```
 
 ## Contributers
